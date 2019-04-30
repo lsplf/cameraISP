@@ -279,6 +279,19 @@
          </widget>
         </item>
         <item>
+         <widget class="QCheckBox" name="doCapture">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>capture</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QLineEdit" name="recordPath">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">

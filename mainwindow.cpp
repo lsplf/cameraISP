@@ -133,7 +133,7 @@ void MainWindow::onTimeout()
         m_cameraOutput->setGeometry(rect);
     }
 
-    if(ui->doRecord->isChecked())
+    if(ui->doRecord->isChecked() || ui->doCapture->isChecked())
     {
         bool hasDiff = false;
         for(int cnt=0; cnt<3; cnt++)
@@ -144,6 +144,7 @@ void MainWindow::onTimeout()
                 bool res = detectDiff(m_roiImage[cnt], result);
                 if(res)
                 {
+                    qDebug() << "diff";
                     hasDiff = true;
                     break;
                 }
@@ -152,13 +153,21 @@ void MainWindow::onTimeout()
 
         if(hasDiff && !m_record)
         {
-            qDebug() << "record start";
-            m_record = true;
-            QString videoPath = ui->recordPath->text();
-            setFilePath(videoPath);
-            m_videoWriter = cv::VideoWriter(videoPath.toStdString(),
-                                            cv::VideoWriter::fourcc('M','J','P','G'),
-                                            25.0, cv::Size(VIDEO_WIDTH, VIDEO_HEIGHT));
+            if(ui->doRecord->isChecked() && !m_record)
+            {
+                qDebug() << "record start";
+                m_record = true;
+                QString videoPath = ui->recordPath->text();
+                setFilePath(videoPath);
+                m_videoWriter = cv::VideoWriter(videoPath.toStdString(),
+                                                cv::VideoWriter::fourcc('M','J','P','G'),
+                                                25.0, cv::Size(VIDEO_WIDTH, VIDEO_HEIGHT));
+            }
+            if(ui->doCapture->isChecked() && !m_capture)
+            {
+                qDebug() << "capture start";
+                m_capture = true;
+            }
         }
         else if(!hasDiff && m_record)
         {
@@ -166,6 +175,12 @@ void MainWindow::onTimeout()
             m_record = false;
             m_videoWriter.release();
         }
+        else if(!hasDiff && m_capture)
+        {
+            qDebug() << "capture stop";
+            m_capture = false;
+        }
+
 
         qDebug() << "analyze: " << debug_time.elapsed();
     }
@@ -206,6 +221,15 @@ void MainWindow::onTimeout()
         {
             m_cropIdx = 0;
         }
+    }
+    if(m_capture)
+    {
+        QTime capture_time;
+        capture_time.start();
+        QString path = ui->recordPath->text();
+        setFilePath(path);
+        cv::imwrite(path.toStdString(), output);
+        qDebug() << "capture: " << capture_time.elapsed();
     }
     if(m_record)
     {
