@@ -43,11 +43,11 @@ private slots:
     void on_cameraStop_clicked();
     void on_cameraCapture_clicked();
     void on_doRecord_toggled(bool checked);
+    void on_doCapture_toggled(bool checked);
     void on_setFrameRate_clicked();
     void on_refApply_1_toggled(bool checked);
     void on_refApply_2_toggled(bool checked);
     void on_refApply_3_toggled(bool checked);
-
     void on_setThreshold_clicked();
 
 private:

@@ -53,3 +53,6 @@ LIBS += -lopencv_highgui -lopencv_core -lopencv_imgproc -lopencv_features2d -lop
 #LIBS += /usr/local/lib/libopencv_imgproc.so
 #LIBS += /usr/local/lib/libopencv_features2d.so
 #LIBS += /usr/local/lib/libopencv_calib3d.so
+
+DISTFILES += \
+    install_opencv4.sh

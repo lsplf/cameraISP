@@ -151,7 +151,7 @@ void MainWindow::onTimeout()
             }
         }
 
-        if(hasDiff && !m_record)
+        if(hasDiff && (!m_record || !m_capture))
         {
             if(ui->doRecord->isChecked() && !m_record)
             {
@@ -226,7 +226,7 @@ void MainWindow::onTimeout()
     {
         QTime capture_time;
         capture_time.start();
-        QString path = ui->recordPath->text();
+        QString path = ui->capturePath->text();
         setFilePath(path);
         cv::imwrite(path.toStdString(), output);
         qDebug() << "capture: " << capture_time.elapsed();
@@ -279,11 +279,6 @@ void MainWindow::on_refApply_3_toggled(bool checked)
     m_roiEnable[2] = checked;
 }
 
-void MainWindow::on_doRecord_toggled(bool checked)
-{
-
-}
-
 void MainWindow::on_setFrameRate_clicked()
 {
     int fps = ui->fpsValue->text().toInt();
@@ -293,4 +288,26 @@ void MainWindow::on_setFrameRate_clicked()
 void MainWindow::on_setThreshold_clicked()
 {
     m_threshold = ui->thrValue->text().toInt();
+}
+
+void MainWindow::on_doRecord_toggled(bool checked)
+{
+    if(checked)
+    {
+        if(ui->doCapture->isChecked())
+        {
+            ui->doCapture->setChecked(false);
+        }
+    }
+}
+
+void MainWindow::on_doCapture_toggled(bool checked)
+{
+    if(checked)
+    {
+        if(ui->doRecord->isChecked())
+        {
+            ui->doRecord->setChecked(false);
+        }
+    }
 }
