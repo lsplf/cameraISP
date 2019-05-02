@@ -1,7 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#define VIDEO_WIDTH      600
+#define VIDEO_WIDTH      640
 #define VIDEO_HEIGHT     480
 
 #define CAMERA_PATH    "nvarguscamerasrc ! video/x-raw(memory:NVMM),width=640,height=480 ! nvvidconv ! appsink"
@@ -162,7 +162,7 @@ void MainWindow::onTimeout()
                 setFilePath(videoPath);
                 m_videoWriter = cv::VideoWriter(videoPath.toStdString(),
                                                 cv::VideoWriter::fourcc('M','J','P','G'),
-                                                25.0, cv::Size(VIDEO_WIDTH, VIDEO_HEIGHT));
+                                                30.0, cv::Size(VIDEO_WIDTH, VIDEO_HEIGHT));
             }
             if(ui->doCapture->isChecked() && !m_capture)
             {
@@ -193,6 +193,10 @@ void MainWindow::onTimeout()
     {
         m_crop = false;
         // Crop image
+        if(m_roiEnable[m_cropIdx])
+        {
+            m_selectRoi->setCropRect(m_cropIdx, m_roiRect[m_cropIdx]);
+        }
         m_roiImage[m_cropIdx] = output(m_roiRect[m_cropIdx]);
 
         QImage qCrop(m_roiImage[m_cropIdx].data, m_roiImage[m_cropIdx].cols,
@@ -262,6 +266,16 @@ void MainWindow::on_cameraStart_clicked()
 
 void MainWindow::on_cameraStop_clicked()
 {
+    if(m_record)
+    {
+        m_record = false;
+        m_videoWriter.release();
+    }
+    on_refDelete_1_clicked();
+    on_refDelete_2_clicked();
+    on_refDelete_3_clicked();
+    m_capture = false;
+
     m_start = false;
     m_videoTimer.stop();
     m_videoCapture.release();
@@ -283,21 +297,46 @@ void MainWindow::on_cameraCapture_clicked()
 void MainWindow::on_refApply_1_toggled(bool checked)
 {
     m_roiEnable[0] = checked;
+    if(checked)
+    {
+        m_selectRoi->setCropRect(0, m_roiRect[0]);
+    }
+    else
+    {
+        m_selectRoi->deleteRoi(0);
+    }
 }
 
 void MainWindow::on_refApply_2_toggled(bool checked)
 {
     m_roiEnable[1] = checked;
+    if(checked)
+    {
+        m_selectRoi->setCropRect(1, m_roiRect[1]);
+    }
+    else
+    {
+        m_selectRoi->deleteRoi(1);
+    }
 }
 
 void MainWindow::on_refApply_3_toggled(bool checked)
 {
     m_roiEnable[2] = checked;
+    if(checked)
+    {
+        m_selectRoi->setCropRect(2, m_roiRect[2]);
+    }
+    else
+    {
+        m_selectRoi->deleteRoi(2);
+    }
 }
 
 void MainWindow::on_refDelete_1_clicked()
 {
     m_roiEnable[0] = false;
+    m_selectRoi->deleteRoi(0);
     ui->refImage_1->setPixmap(QPixmap());
     ui->refApply_1->setChecked(false);
     ui->refApply_1->setEnabled(false);
@@ -307,6 +346,7 @@ void MainWindow::on_refDelete_1_clicked()
 void MainWindow::on_refDelete_2_clicked()
 {
     m_roiEnable[1] = false;
+    m_selectRoi->deleteRoi(1);
     ui->refImage_2->setPixmap(QPixmap());
     ui->refApply_2->setChecked(false);
     ui->refApply_2->setEnabled(false);
@@ -316,6 +356,7 @@ void MainWindow::on_refDelete_2_clicked()
 void MainWindow::on_refDelete_3_clicked()
 {
     m_roiEnable[2] = false;
+    m_selectRoi->deleteRoi(2);
     ui->refImage_3->setPixmap(QPixmap());
     ui->refApply_3->setChecked(false);
     ui->refApply_3->setEnabled(false);
@@ -353,4 +394,9 @@ void MainWindow::on_doCapture_toggled(bool checked)
             ui->doRecord->setChecked(false);
         }
     }
+}
+
+void MainWindow::on_showArea_toggled(bool checked)
+{
+    m_selectRoi->showRois(checked);
 }

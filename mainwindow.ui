@@ -108,7 +108,7 @@
                   </property>
                  </widget>
                 </item>
-                <item>
+                <item alignment="Qt::AlignHCenter">
                  <widget class="QCheckBox" name="refApply_1">
                   <property name="enabled">
                    <bool>false</bool>
@@ -194,7 +194,7 @@
                   </property>
                  </widget>
                 </item>
-                <item>
+                <item alignment="Qt::AlignHCenter">
                  <widget class="QCheckBox" name="refApply_2">
                   <property name="enabled">
                    <bool>false</bool>
@@ -307,7 +307,7 @@
                   </property>
                  </widget>
                 </item>
-                <item>
+                <item alignment="Qt::AlignHCenter">
                  <widget class="QCheckBox" name="refApply_3">
                   <property name="enabled">
                    <bool>false</bool>
@@ -320,28 +320,6 @@
                </layout>
               </item>
              </layout>
-            </widget>
-           </item>
-           <item row="0" column="0" colspan="3">
-            <widget class="QLabel" name="label_3">
-             <property name="font">
-              <font>
-               <weight>75</weight>
-               <bold>true</bold>
-              </font>
-             </property>
-             <property name="text">
-              <string>Reference Images</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-             </property>
-             <property name="margin">
-              <number>0</number>
-             </property>
-             <property name="indent">
-              <number>10</number>
-             </property>
             </widget>
            </item>
            <item row="3" column="0" colspan="3">
@@ -589,6 +567,35 @@
              </property>
              <property name="lineWidth">
               <number>1</number>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0" colspan="2">
+            <widget class="QLabel" name="label_3">
+             <property name="font">
+              <font>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="text">
+              <string>Reference Images</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+             </property>
+             <property name="margin">
+              <number>0</number>
+             </property>
+             <property name="indent">
+              <number>10</number>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="2" alignment="Qt::AlignRight">
+            <widget class="QCheckBox" name="showArea">
+             <property name="text">
+              <string>show area  </string>
              </property>
             </widget>
            </item>

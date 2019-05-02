@@ -42,16 +42,21 @@ private slots:
     void on_cameraStart_clicked();
     void on_cameraStop_clicked();
     void on_cameraCapture_clicked();
-    void on_doRecord_toggled(bool checked);
-    void on_doCapture_toggled(bool checked);
-    void on_setFrameRate_clicked();
+
     void on_refApply_1_toggled(bool checked);
     void on_refApply_2_toggled(bool checked);
     void on_refApply_3_toggled(bool checked);
-    void on_setThreshold_clicked();
     void on_refDelete_1_clicked();
     void on_refDelete_2_clicked();
     void on_refDelete_3_clicked();
+
+    void on_setFrameRate_clicked();
+    void on_setThreshold_clicked();
+
+    void on_doRecord_toggled(bool checked);
+    void on_doCapture_toggled(bool checked);
+
+    void on_showArea_toggled(bool checked);
 
 private:
     bool detectDiff(cv::Mat &ref, cv::Mat &comp);

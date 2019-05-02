@@ -40,6 +40,9 @@ class SelectRoi : public QLabel
 public:
     explicit SelectRoi(QWidget *parent = nullptr);
     ~SelectRoi();
+    void setCropRect(int cropIdx, const cv::Rect &selectedRect);
+    void deleteRoi(int roiIdx);
+    void showRois(bool show);
 
 signals:
     void rectComplete(const cv::Rect &selectedRect);
@@ -53,11 +56,23 @@ protected:
     void mouseReleaseEvent(QMouseEvent * ev);
 
 private:
+
     QTimer m_timer;
     SelectionState m_posState;
+
     QPixmap * m_pixmapSrc;
-    QColor m_rectColor;
-    QPen m_rectPen;
+    bool      m_update;
+
+    QColor m_roiColor;
+    QPen   m_roiPen;
+
+    QColor m_drawColor;
+    QPen   m_drawPen;
+
+    cv::Rect m_roiRect[3];
+    bool     m_roiUsed[3];
+
+    bool m_showAreas;
 };
 
 #endif // SELECTROI_H
