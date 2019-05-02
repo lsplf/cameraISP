@@ -4,14 +4,15 @@
 #define VIDEO_WIDTH      600
 #define VIDEO_HEIGHT     480
 
-#define CAMERA_PATH    "nvarguscamerasrc ! video/x-raw(memory:NVMM),width=600,height=480 ! nvvidconv ! appsink"
+#define CAMERA_PATH    "nvarguscamerasrc ! video/x-raw(memory:NVMM),width=640,height=480 ! nvvidconv ! appsink"
 #define CAMERA_FLAG    cv::CAP_GSTREAMER
 
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    m_threshold(10), m_capture(false), m_record(false), m_crop(false), m_cropIdx(0)
+    m_threshold(10), m_capture(false), m_record(false),
+    m_crop(false), m_cropIdx(0)
 {
     m_roiEnable[0] = false;
     m_roiEnable[1] = false;
@@ -204,16 +205,19 @@ void MainWindow::onTimeout()
         {
             ui->refImage_1->setPixmap(pixmap);
             ui->refApply_1->setEnabled(true);
+            ui->refDelete_1->setEnabled(true);
         }
         else if(m_cropIdx == 1)
         {
             ui->refImage_2->setPixmap(pixmap);
             ui->refApply_2->setEnabled(true);
+            ui->refDelete_2->setEnabled(true);
         }
         else if(m_cropIdx == 2)
         {
             ui->refImage_3->setPixmap(pixmap);
             ui->refApply_3->setEnabled(true);
+            ui->refDelete_3->setEnabled(true);
         }
 
         m_cropIdx++;
@@ -226,17 +230,22 @@ void MainWindow::onTimeout()
     {
         QTime capture_time;
         capture_time.start();
+
         QString path = ui->capturePath->text();
         setFilePath(path);
-        cv::imwrite(path.toStdString(), output);
+        cv::Mat snapshot;  cv::cvtColor(output, snapshot, cv::COLOR_RGB2BGR);
+        cv::imwrite(path.toStdString(), snapshot);
+
         qDebug() << "capture: " << capture_time.elapsed();
     }
     if(m_record)
     {
         QTime record_time;
         record_time.start();
+
         cv::cvtColor(output, output, cv::COLOR_BGR2RGB);
         m_videoWriter.write(output);
+
         qDebug() << "record: " << record_time.elapsed();
     }
 
@@ -261,7 +270,14 @@ void MainWindow::on_cameraStop_clicked()
 
 void MainWindow::on_cameraCapture_clicked()
 {
-    m_capture = true;
+    if(m_pixmap.isNull())
+    {
+        qDebug() << "no pixmap";
+        return;
+    }
+    QString path = ui->snapshotPath->text();
+    setFilePath(path);
+    m_pixmap.save(path);
 }
 
 void MainWindow::on_refApply_1_toggled(bool checked)
@@ -277,6 +293,33 @@ void MainWindow::on_refApply_2_toggled(bool checked)
 void MainWindow::on_refApply_3_toggled(bool checked)
 {
     m_roiEnable[2] = checked;
+}
+
+void MainWindow::on_refDelete_1_clicked()
+{
+    m_roiEnable[0] = false;
+    ui->refImage_1->setPixmap(QPixmap());
+    ui->refApply_1->setChecked(false);
+    ui->refApply_1->setEnabled(false);
+    ui->refDelete_1->setEnabled(false);
+}
+
+void MainWindow::on_refDelete_2_clicked()
+{
+    m_roiEnable[1] = false;
+    ui->refImage_2->setPixmap(QPixmap());
+    ui->refApply_2->setChecked(false);
+    ui->refApply_2->setEnabled(false);
+    ui->refDelete_2->setEnabled(false);
+}
+
+void MainWindow::on_refDelete_3_clicked()
+{
+    m_roiEnable[2] = false;
+    ui->refImage_3->setPixmap(QPixmap());
+    ui->refApply_3->setChecked(false);
+    ui->refApply_3->setEnabled(false);
+    ui->refDelete_3->setEnabled(false);
 }
 
 void MainWindow::on_setFrameRate_clicked()

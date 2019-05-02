@@ -49,6 +49,9 @@ private slots:
     void on_refApply_2_toggled(bool checked);
     void on_refApply_3_toggled(bool checked);
     void on_setThreshold_clicked();
+    void on_refDelete_1_clicked();
+    void on_refDelete_2_clicked();
+    void on_refDelete_3_clicked();
 
 private:
     bool detectDiff(cv::Mat &ref, cv::Mat &comp);

@@ -43,6 +43,7 @@ HEADERS += \
 FORMS += \
         mainwindow.ui
 
+QMAKE_LFLAGS += -no-pie
 INCLUDEPATH += /usr/local/include/opencv4
 LIBS += -L/usr/local/lib -lopencv_shape -lopencv_videoio -lopencv_imgcodecs
 LIBS += -lopencv_highgui -lopencv_core -lopencv_imgproc -lopencv_features2d -lopencv_calib3d
