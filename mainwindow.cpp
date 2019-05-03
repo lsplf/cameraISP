@@ -4,7 +4,7 @@
 #define VIDEO_WIDTH      640
 #define VIDEO_HEIGHT     480
 
-#define CAMERA_PATH   "nvarguscamerasrc ! video/x-raw(memory:NVMM),width=640,height=480,format=NV12 ! nvvidconv ! appsink"
+#define CAMERA_PATH   "nvarguscamerasrc ! video/x-raw(memory:NVMM),width=640,height=480,format=NV12,framerate=(fraction)120/1 ! nvvidconv ! appsink"
 #define CAMERA_FLAG   cv::CAP_GSTREAMER
 
 
@@ -221,6 +221,20 @@ void MainWindow::onTimeout()
         }
 
         ui->analyzeMs->setText(QString::number(m_debugTime.elapsed()));
+    }
+    else
+    {
+        if(m_record)
+        {
+            ui->recordMs->setText("stop");
+            m_record = false;
+            m_videoWriter.release();
+        }
+        if(m_capture)
+        {
+            ui->captureMs->setText("stop");
+            m_capture = false;
+        }
     }
 
     QImage qimg(output.data, output.cols, output.rows, output.step, QImage::Format_RGB888);
