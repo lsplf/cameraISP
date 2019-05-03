@@ -78,6 +78,7 @@ private:
     bool     m_roiEnable[3];
     int m_threshold;
 
+    bool m_cameraWorking;
     bool m_start;
     bool m_capture;
     bool m_record;

@@ -11,6 +11,7 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
+    m_cameraWorking(false),
     m_threshold(10), m_capture(false), m_record(false),
     m_crop(false), m_cropIdx(0)
 {
@@ -41,14 +42,16 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->gridLayout->addWidget(m_cameraRtp, 0, 6);
     */
 
+    m_videoCapture = cv::VideoCapture(CAMERA_PATH, CAMERA_FLAG);
+
     connect(&m_videoTimer, SIGNAL(timeout()), SLOT(onTimeout()));
     connect(m_selectRoi, SIGNAL(rectComplete(cv::Rect)), this, SLOT(onRoiSelected(cv::Rect)));
 
     m_threshold = ui->thrValue->text().toInt();
-
     int fps = ui->fpsValue->text().toInt();
     m_videoTimer.setInterval(1000/fps);
     m_videoTimer.setTimerType(Qt::PreciseTimer);
+    m_videoTimer.start();
 }
 
 MainWindow::~MainWindow()
@@ -60,15 +63,15 @@ MainWindow::~MainWindow()
     if(m_videoTimer.isActive())
     {
         m_videoTimer.stop();
-        m_videoCapture.release();
     }
+    m_videoCapture.release();
     cv::destroyAllWindows();
     delete ui;
 }
 
 void MainWindow::onRoiSelected(const cv::Rect &selectedRect)
 {
-    if(!m_videoTimer.isActive())
+    if(!m_cameraWorking)
     {
         ui->statusBar->showMessage("camera not working");
         return;
@@ -109,18 +112,22 @@ bool MainWindow::detectDiff(cv::Mat &ref, cv::Mat &comp)
 
 void MainWindow::onTimeout()
 {
-    ui->frameRate->setText(QString::number(1000/m_fpsTime.elapsed()));
-    m_fpsTime.restart();
+    if(m_cameraWorking)
+    {
+        ui->frameRate->setText(QString::number(1000/m_fpsTime.elapsed()));
+        m_fpsTime.restart();
+    }
 
     cv::Mat frame;
     bool result = m_videoCapture.read(frame);
-//    qDebug() << "end read: " << m_fpsTime.elapsed();
+    if(!m_cameraWorking)
+    {
+        return;
+    }
     if(!result)
     {
-        ui->statusBar->showMessage("frame read failed -> timer stop");
-        m_videoTimer.stop();
-        m_videoCapture.release();
-        cv::destroyAllWindows();
+        ui->statusBar->showMessage("frame read failed -> timer task stop");
+        m_cameraWorking = false;
         return;
     }
     if(frame.empty())
@@ -129,6 +136,7 @@ void MainWindow::onTimeout()
         return;
     }
 
+//    qDebug() << "end read: " << m_fpsTime.elapsed();
     m_debugTime.restart();
 
     cv::Mat output;
@@ -318,8 +326,7 @@ void MainWindow::onTimeout()
 void MainWindow::on_cameraStart_clicked()
 {
     m_start = true;
-    m_videoCapture = cv::VideoCapture(CAMERA_PATH, CAMERA_FLAG);
-    m_videoTimer.start();
+    m_cameraWorking = true;
     m_fpsTime.restart();
 
     m_capturePath = ui->capturePath->text();
@@ -344,9 +351,7 @@ void MainWindow::on_cameraStop_clicked()
     m_capture = false;
 
     m_start = false;
-    m_videoTimer.stop();
-    m_videoCapture.release();
-    cv::destroyAllWindows();
+    m_cameraWorking = false;
 
     ui->totalMs->setText("stop");
     ui->analyzeMs->setText("stop");
