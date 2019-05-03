@@ -298,38 +298,40 @@ void MainWindow::onTimeout()
             ui->nextCropPos->setText(QString("next:  ref%1").arg(m_cropIdx+1));
         }
     }
-    if(m_capture)
+    if(m_capture || m_record)
     {
-        QTime capture_time;
-        capture_time.start();
-
-        if(setFilePath(m_capturePath))
+        cv::cvtColor(output, output, cv::COLOR_RGB2BGR);
+        if(m_capture)
         {
-            cv::Mat snapshot;  cv::cvtColor(output, snapshot, cv::COLOR_RGB2BGR);
-            cv::imwrite(m_capturePath.toStdString(), snapshot);
+            QTime capture_time;
+            capture_time.start();
 
-            ui->captureMs->setText(QString::number(capture_time.elapsed()));
+            if(setFilePath(m_capturePath))
+            {
+                cv::imwrite(m_capturePath.toStdString(), output);
+
+                ui->captureMs->setText(QString::number(capture_time.elapsed()));
+            }
+            else
+            {
+                m_capture = false;
+                ui->doCapture->setChecked(false);
+            }
+
+            if(!m_debugMsg.isEmpty())
+            {
+                ui->statusBar->showMessage(m_debugMsg);
+            }
         }
-        else
+        if(m_record)
         {
-            m_capture = false;
-            ui->doCapture->setChecked(false);
+            QTime record_time;
+            record_time.start();
+
+            m_videoWriter.write(output);
+
+            ui->recordMs->setText(QString::number(record_time.elapsed()));
         }
-
-        if(!m_debugMsg.isEmpty())
-        {
-            ui->statusBar->showMessage(m_debugMsg);
-        }
-    }
-    if(m_record)
-    {
-        QTime record_time;
-        record_time.start();
-
-        cv::cvtColor(output, output, cv::COLOR_BGR2RGB);
-        m_videoWriter.write(output);
-
-        ui->recordMs->setText(QString::number(record_time.elapsed()));
     }
 
     m_cameraOutput->setPixmap(m_pixmap);
