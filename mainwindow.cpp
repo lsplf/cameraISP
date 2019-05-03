@@ -68,8 +68,14 @@ MainWindow::~MainWindow()
 
 void MainWindow::onRoiSelected(const cv::Rect &selectedRect)
 {
+    if(!m_videoTimer.isActive())
+    {
+        ui->statusBar->showMessage("camera not working");
+        return;
+    }
     if((selectedRect.size().width == 0) || (selectedRect.size().height == 0))
     {
+        ui->statusBar->showMessage("invalid roi rect (zeroes)");
         return;
     }
     m_roiRect[m_cropIdx] = selectedRect;
@@ -216,42 +222,59 @@ void MainWindow::onTimeout()
     if(m_crop)
     {
         m_crop = false;
-        // Crop image
-        if(m_roiEnable[m_cropIdx])
+        if((m_roiRect[m_cropIdx].x + m_roiRect[m_cropIdx].width > output.cols) ||
+            (m_roiRect[m_cropIdx].y + m_roiRect[m_cropIdx].height > output.rows))
         {
-            m_selectRoi->setCropRect(m_cropIdx, m_roiRect[m_cropIdx]);
+            ui->statusBar->showMessage(QString("invalid roi rect <size - (%1,%2)>")
+                                       .arg(m_roiRect[m_cropIdx].x + m_roiRect[m_cropIdx].width)
+                                       .arg(m_roiRect[m_cropIdx].y + m_roiRect[m_cropIdx].height));
         }
-        m_roiImage[m_cropIdx] = output(m_roiRect[m_cropIdx]);
+        else if((m_roiRect[m_cropIdx].x < 0) || (m_roiRect[m_cropIdx].y < 0))
+        {
+            ui->statusBar->showMessage(QString("invalid roi rect <pos - (%1,%2)>")
+                                       .arg(m_roiRect[m_cropIdx].x)
+                                       .arg(m_roiRect[m_cropIdx].y));
+        }
+        else
+        {
+            // Crop image
+            if(m_roiEnable[m_cropIdx])
+            {
+                m_selectRoi->setCropRect(m_cropIdx, m_roiRect[m_cropIdx]);
+            }
+            m_roiImage[m_cropIdx] = output(m_roiRect[m_cropIdx]);
 
-        QImage qCrop(m_roiImage[m_cropIdx].data, m_roiImage[m_cropIdx].cols,
-                     m_roiImage[m_cropIdx].rows, m_roiImage[m_cropIdx].step, QImage::Format_RGB888);
-        QPixmap pixmap = QPixmap::fromImage(qCrop);
-        pixmap = pixmap.scaled(100, 100, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+            QImage qCrop(m_roiImage[m_cropIdx].data, m_roiImage[m_cropIdx].cols,
+                         m_roiImage[m_cropIdx].rows, m_roiImage[m_cropIdx].step, QImage::Format_RGB888);
+            QPixmap pixmap = QPixmap::fromImage(qCrop);
+            pixmap = pixmap.scaled(100, 100, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
-        // Display Cropped Image
-        if(m_cropIdx == 0)
-        {
-            ui->refImage_1->setPixmap(pixmap);
-            ui->refApply_1->setEnabled(true);
-            ui->refDelete_1->setEnabled(true);
-        }
-        else if(m_cropIdx == 1)
-        {
-            ui->refImage_2->setPixmap(pixmap);
-            ui->refApply_2->setEnabled(true);
-            ui->refDelete_2->setEnabled(true);
-        }
-        else if(m_cropIdx == 2)
-        {
-            ui->refImage_3->setPixmap(pixmap);
-            ui->refApply_3->setEnabled(true);
-            ui->refDelete_3->setEnabled(true);
-        }
+            // Display Cropped Image
+            if(m_cropIdx == 0)
+            {
+                ui->refImage_1->setPixmap(pixmap);
+                ui->refApply_1->setEnabled(true);
+                ui->refDelete_1->setEnabled(true);
+            }
+            else if(m_cropIdx == 1)
+            {
+                ui->refImage_2->setPixmap(pixmap);
+                ui->refApply_2->setEnabled(true);
+                ui->refDelete_2->setEnabled(true);
+            }
+            else if(m_cropIdx == 2)
+            {
+                ui->refImage_3->setPixmap(pixmap);
+                ui->refApply_3->setEnabled(true);
+                ui->refDelete_3->setEnabled(true);
+            }
 
-        m_cropIdx++;
-        if(m_cropIdx >= 3)
-        {
-            m_cropIdx = 0;
+            m_cropIdx++;
+            if(m_cropIdx >= 3)
+            {
+                m_cropIdx = 0;
+            }
+            ui->nextCropPos->setText(QString("next:  ref%1").arg(m_cropIdx+1));
         }
     }
     if(m_capture)
@@ -303,6 +326,9 @@ void MainWindow::on_cameraStart_clicked()
     m_recordPath  = ui->recordPath->text();
     ui->capturePath->setEnabled(false);
     ui->recordPath->setEnabled(false);
+
+    ui->cameraStop->setEnabled(true);
+    ui->cameraStart->setEnabled(false);
 }
 
 void MainWindow::on_cameraStop_clicked()
@@ -327,6 +353,9 @@ void MainWindow::on_cameraStop_clicked()
     ui->frameRate->setText("stop");
     ui->capturePath->setEnabled(true);
     ui->recordPath->setEnabled(true);
+
+    ui->cameraStop->setEnabled(false);
+    ui->cameraStart->setEnabled(true);
 }
 
 void MainWindow::on_cameraCapture_clicked()
