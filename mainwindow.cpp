@@ -4,7 +4,7 @@
 #define VIDEO_WIDTH      640
 #define VIDEO_HEIGHT     480
 
-#define CAMERA_PATH   "nvarguscamerasrc ! video/x-raw(memory:NVMM),width=640,height=480 ! nvvidconv ! appsink"
+#define CAMERA_PATH   "nvarguscamerasrc ! video/x-raw(memory:NVMM),width=640,height=480,format=NV12 ! nvvidconv ! appsink"
 #define CAMERA_FLAG   cv::CAP_GSTREAMER
 
 
