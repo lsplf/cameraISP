@@ -11,8 +11,7 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    m_cameraWorking(false),
-    m_threshold(10), m_capture(false), m_record(false),
+    m_threshold(10), m_cameraWorking(false), m_capture(false), m_record(false),
     m_crop(false), m_cropIdx(0)
 {
     m_roiEnable[0] = false;
