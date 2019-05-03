@@ -84,13 +84,21 @@ private:
     bool m_crop;
     int m_cropIdx;
 
-    void setFilePath(QString &file_path)
+    QString m_capturePath;
+    QString m_recordPath;
+    QTime   m_debugTime;
+    QTime   m_fpsTime;
+
+    QString m_debugMsg;
+
+    bool setFilePath(QString &file_path)
     {
+        QTime path_time;  path_time.start();
         QFileInfo info(file_path);
         if(!info.dir().exists())
         {
-            qDebug() << QString("directory not exists <%1>").arg(info.dir().dirName());
-            return;
+            m_debugMsg = QString("directory not exists <%1>").arg(info.dir().dirName());
+            return false;
         }
 
         QString fileName = file_path;
@@ -102,12 +110,27 @@ private:
             {
                 if(nameCount > 0)
                 {
-                    qDebug() << QString("file name changed to <%1>").arg(info.fileName());
+                    m_debugMsg = QString("file name changed to <%1>").arg(info.fileName());
+                }
+                else
+                {
+                    m_debugMsg = "";
                 }
                 break;
             }
             QStringList base = info.baseName().split("_");
             QString baseName = ((info.baseName().at(0) == '_') ? "_" : "") + base.at(0);
+            if(base.length() > 1)
+            {
+                bool ok;
+                QString temp = base.at(base.length()-1);
+                int tempCnt = temp.toInt(&ok);
+                if(ok)
+                {
+                    nameCount = tempCnt+1;
+                }
+            }
+
             for(int cnt=1; cnt<base.length()-1; cnt++)
             {
                 baseName += "_" + base.at(cnt);
@@ -122,6 +145,9 @@ private:
         } while(1);
 
         file_path = fileName;
+
+        qDebug() << "setPath: " << path_time.elapsed();
+        return true;
     }
 };
 

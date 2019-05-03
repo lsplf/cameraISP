@@ -83,8 +83,6 @@ void SelectRoi::mousePressEvent(QMouseEvent * ev)
             {
                 m_timer.start(50);
             }
-
-            //qDebug() << "start area Rect";
         }
     }
 
@@ -99,7 +97,6 @@ void SelectRoi::mouseMoveEvent(QMouseEvent * ev)
         m_posState.mousePos.y = ev->y();
 
         m_update = true;
-        //qDebug() << "moving mouse";
     }
 
     QLabel::mouseMoveEvent(ev);
@@ -115,7 +112,6 @@ void SelectRoi::mouseReleaseEvent(QMouseEvent * ev)
             m_posState.endPt.x = ev->x();
             m_posState.endPt.y = ev->y();
 
-            qDebug() << "rectComplete ";
             emit rectComplete(m_posState.toRectCv());
 
             if(!m_showAreas)

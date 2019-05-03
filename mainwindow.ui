@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>842</width>
-    <height>595</height>
+    <height>654</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -380,6 +380,9 @@
                <property name="text">
                 <string>capture</string>
                </property>
+               <property name="tristate">
+                <bool>false</bool>
+               </property>
               </widget>
              </item>
              <item>
@@ -400,7 +403,7 @@
              </item>
             </layout>
            </item>
-           <item row="7" column="0" colspan="3">
+           <item row="8" column="0" colspan="3">
             <widget class="QWidget" name="widget_5" native="true">
              <property name="minimumSize">
               <size>
@@ -457,7 +460,7 @@
                      </size>
                     </property>
                     <property name="text">
-                     <string>30</string>
+                     <string>35</string>
                     </property>
                    </widget>
                   </item>
@@ -599,6 +602,105 @@
              </property>
             </widget>
            </item>
+           <item row="7" column="0" colspan="3">
+            <widget class="QWidget" name="widget_6" native="true">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>0</height>
+              </size>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_6">
+              <item row="0" column="0">
+               <layout class="QGridLayout" name="gridLayout_3">
+                <item row="1" column="1">
+                 <widget class="QLabel" name="totalMs">
+                  <property name="text">
+                   <string>stop</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="3">
+                 <widget class="QLabel" name="captureMs">
+                  <property name="text">
+                   <string>stop</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QLabel" name="label_5">
+                  <property name="text">
+                   <string>Total</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="1">
+                 <widget class="QLabel" name="analyzeMs">
+                  <property name="text">
+                   <string>stop</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="2">
+                 <widget class="QLabel" name="label_7">
+                  <property name="text">
+                   <string>Record</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="3">
+                 <widget class="QLabel" name="recordMs">
+                  <property name="text">
+                   <string>stop</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="0">
+                 <widget class="QLabel" name="label_9">
+                  <property name="text">
+                   <string>Analyze</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="2">
+                 <widget class="QLabel" name="label_11">
+                  <property name="text">
+                   <string>Capture</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="0" colspan="2">
+                 <widget class="QLabel" name="label_13">
+                  <property name="font">
+                   <font>
+                    <weight>75</weight>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>State (ms)</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="2">
+                 <widget class="QLabel" name="label_6">
+                  <property name="text">
+                   <string>Framerate</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="3">
+                 <widget class="QLabel" name="frameRate">
+                  <property name="text">
+                   <string>stop</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+           </item>
           </layout>
          </item>
         </layout>
@@ -640,12 +742,17 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <tabstops>
+  <tabstop>showArea</tabstop>
   <tabstop>refDelete_1</tabstop>
   <tabstop>refDelete_2</tabstop>
   <tabstop>refDelete_3</tabstop>
   <tabstop>refApply_1</tabstop>
   <tabstop>refApply_2</tabstop>
   <tabstop>refApply_3</tabstop>
+  <tabstop>doCapture</tabstop>
+  <tabstop>capturePath</tabstop>
+  <tabstop>doRecord</tabstop>
+  <tabstop>recordPath</tabstop>
   <tabstop>cameraStart</tabstop>
   <tabstop>cameraStop</tabstop>
   <tabstop>fpsValue</tabstop>
@@ -653,6 +760,7 @@
   <tabstop>thrValue</tabstop>
   <tabstop>setThreshold</tabstop>
   <tabstop>snapshotPath</tabstop>
+  <tabstop>cameraCapture</tabstop>
  </tabstops>
  <resources/>
  <connections/>

@@ -4,8 +4,8 @@
 #define VIDEO_WIDTH      640
 #define VIDEO_HEIGHT     480
 
-#define CAMERA_PATH    "nvarguscamerasrc ! video/x-raw(memory:NVMM),width=640,height=480 ! nvvidconv ! appsink"
-#define CAMERA_FLAG    cv::CAP_GSTREAMER
+#define CAMERA_PATH   "nvarguscamerasrc ! video/x-raw(memory:NVMM),width=640,height=480 ! nvvidconv ! appsink"
+#define CAMERA_FLAG   cv::CAP_GSTREAMER
 
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -45,8 +45,10 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_selectRoi, SIGNAL(rectComplete(cv::Rect)), this, SLOT(onRoiSelected(cv::Rect)));
 
     m_threshold = ui->thrValue->text().toInt();
+
     int fps = ui->fpsValue->text().toInt();
     m_videoTimer.setInterval(1000/fps);
+    m_videoTimer.setTimerType(Qt::PreciseTimer);
 }
 
 MainWindow::~MainWindow()
@@ -72,7 +74,7 @@ void MainWindow::onRoiSelected(const cv::Rect &selectedRect)
     }
     m_roiRect[m_cropIdx] = selectedRect;
     m_crop = true;
-    qDebug() << "roi selected";
+    ui->statusBar->showMessage("roi selected");
 }
 
 bool MainWindow::detectDiff(cv::Mat &ref, cv::Mat &comp)
@@ -101,11 +103,15 @@ bool MainWindow::detectDiff(cv::Mat &ref, cv::Mat &comp)
 
 void MainWindow::onTimeout()
 {
+    ui->frameRate->setText(QString::number(1000/m_fpsTime.elapsed()));
+    m_fpsTime.restart();
+
     cv::Mat frame;
     bool result = m_videoCapture.read(frame);
+//    qDebug() << "end read: " << m_fpsTime.elapsed();
     if(!result)
     {
-        qDebug() << "read failed -> stop";
+        ui->statusBar->showMessage("frame read failed -> timer stop");
         m_videoTimer.stop();
         m_videoCapture.release();
         cv::destroyAllWindows();
@@ -113,12 +119,11 @@ void MainWindow::onTimeout()
     }
     if(frame.empty())
     {
-        qDebug() << "frame empty";
+        ui->statusBar->showMessage("frame empty");
         return;
     }
 
-    QTime debug_time;
-    debug_time.start();
+    m_debugTime.restart();
 
     cv::Mat output;
     cv::cvtColor(frame, output, cv::COLOR_YUV2RGB_NV12);
@@ -130,7 +135,8 @@ void MainWindow::onTimeout()
         rect.setWidth(output.cols);
         rect.setHeight(output.rows);
 
-        qDebug() << "set output size: " << rect;
+        ui->statusBar->showMessage(QString("frame start -> set output size (%1, %2)")
+                                   .arg(output.cols).arg(output.rows));
         m_cameraOutput->setGeometry(rect);
     }
 
@@ -145,7 +151,6 @@ void MainWindow::onTimeout()
                 bool res = detectDiff(m_roiImage[cnt], result);
                 if(res)
                 {
-                    qDebug() << "diff";
                     hasDiff = true;
                     break;
                 }
@@ -156,34 +161,53 @@ void MainWindow::onTimeout()
         {
             if(ui->doRecord->isChecked() && !m_record)
             {
-                qDebug() << "record start";
-                m_record = true;
-                QString videoPath = ui->recordPath->text();
-                setFilePath(videoPath);
-                m_videoWriter = cv::VideoWriter(videoPath.toStdString(),
-                                                cv::VideoWriter::fourcc('M','J','P','G'),
-                                                30.0, cv::Size(VIDEO_WIDTH, VIDEO_HEIGHT));
+                if(setFilePath(m_recordPath))
+                {
+                    m_record = true;
+                    m_videoWriter = cv::VideoWriter(m_recordPath.toStdString(),
+                                                    cv::VideoWriter::fourcc('M','J','P','G'),
+                                                    30.0, cv::Size(VIDEO_WIDTH, VIDEO_HEIGHT));
+                }
+                else
+                {
+                    ui->doRecord->setChecked(false);
+                }
+
+                if(!m_debugMsg.isEmpty())
+                {
+                    ui->statusBar->showMessage(m_debugMsg);
+                }
             }
             if(ui->doCapture->isChecked() && !m_capture)
             {
-                qDebug() << "capture start";
-                m_capture = true;
+                if(setFilePath(m_capturePath))
+                {
+                    m_capture = true;
+                }
+                else
+                {
+                    ui->doCapture->setChecked(false);
+                }
+
+                if(!m_debugMsg.isEmpty())
+                {
+                    ui->statusBar->showMessage(m_debugMsg);
+                }
             }
         }
         else if(!hasDiff && m_record)
         {
-            qDebug() << "record stop";
+            ui->recordMs->setText("stop");
             m_record = false;
             m_videoWriter.release();
         }
         else if(!hasDiff && m_capture)
         {
-            qDebug() << "capture stop";
+            ui->captureMs->setText("stop");
             m_capture = false;
         }
 
-
-        qDebug() << "analyze: " << debug_time.elapsed();
+        ui->analyzeMs->setText(QString::number(m_debugTime.elapsed()));
     }
 
     QImage qimg(output.data, output.cols, output.rows, output.step, QImage::Format_RGB888);
@@ -235,12 +259,23 @@ void MainWindow::onTimeout()
         QTime capture_time;
         capture_time.start();
 
-        QString path = ui->capturePath->text();
-        setFilePath(path);
-        cv::Mat snapshot;  cv::cvtColor(output, snapshot, cv::COLOR_RGB2BGR);
-        cv::imwrite(path.toStdString(), snapshot);
+        if(setFilePath(m_capturePath))
+        {
+            cv::Mat snapshot;  cv::cvtColor(output, snapshot, cv::COLOR_RGB2BGR);
+            cv::imwrite(m_capturePath.toStdString(), snapshot);
 
-        qDebug() << "capture: " << capture_time.elapsed();
+            ui->captureMs->setText(QString::number(capture_time.elapsed()));
+        }
+        else
+        {
+            m_capture = false;
+            ui->doCapture->setChecked(false);
+        }
+
+        if(!m_debugMsg.isEmpty())
+        {
+            ui->statusBar->showMessage(m_debugMsg);
+        }
     }
     if(m_record)
     {
@@ -250,11 +285,11 @@ void MainWindow::onTimeout()
         cv::cvtColor(output, output, cv::COLOR_BGR2RGB);
         m_videoWriter.write(output);
 
-        qDebug() << "record: " << record_time.elapsed();
+        ui->recordMs->setText(QString::number(record_time.elapsed()));
     }
 
     m_cameraOutput->setPixmap(m_pixmap);
-    qDebug() << "end: " << debug_time.elapsed();
+    ui->totalMs->setText(QString::number(m_debugTime.elapsed()));
 }
 
 void MainWindow::on_cameraStart_clicked()
@@ -262,6 +297,12 @@ void MainWindow::on_cameraStart_clicked()
     m_start = true;
     m_videoCapture = cv::VideoCapture(CAMERA_PATH, CAMERA_FLAG);
     m_videoTimer.start();
+    m_fpsTime.restart();
+
+    m_capturePath = ui->capturePath->text();
+    m_recordPath  = ui->recordPath->text();
+    ui->capturePath->setEnabled(false);
+    ui->recordPath->setEnabled(false);
 }
 
 void MainWindow::on_cameraStop_clicked()
@@ -280,17 +321,27 @@ void MainWindow::on_cameraStop_clicked()
     m_videoTimer.stop();
     m_videoCapture.release();
     cv::destroyAllWindows();
+
+    ui->totalMs->setText("stop");
+    ui->analyzeMs->setText("stop");
+    ui->frameRate->setText("stop");
+    ui->capturePath->setEnabled(true);
+    ui->recordPath->setEnabled(true);
 }
 
 void MainWindow::on_cameraCapture_clicked()
 {
     if(m_pixmap.isNull())
     {
-        qDebug() << "no pixmap";
+        ui->statusBar->showMessage("no pixmap to capture");
         return;
     }
     QString path = ui->snapshotPath->text();
     setFilePath(path);
+    if(!m_debugMsg.isEmpty())
+    {
+        ui->statusBar->showMessage(m_debugMsg);
+    }
     m_pixmap.save(path);
 }
 
@@ -365,13 +416,30 @@ void MainWindow::on_refDelete_3_clicked()
 
 void MainWindow::on_setFrameRate_clicked()
 {
-    int fps = ui->fpsValue->text().toInt();
-    m_videoTimer.setInterval(1000/fps);
+    bool ok;
+    int fps = ui->fpsValue->text().toInt(&ok);
+    if(ok)
+    {
+        m_videoTimer.setInterval(1000/fps);
+    }
+    else
+    {
+        ui->statusBar->showMessage("framerate: can't change to int");
+    }
 }
 
 void MainWindow::on_setThreshold_clicked()
 {
-    m_threshold = ui->thrValue->text().toInt();
+    bool ok;
+    int thr = ui->thrValue->text().toInt(&ok);
+    if(ok)
+    {
+        m_threshold = thr;
+    }
+    else
+    {
+        ui->statusBar->showMessage("threshold: can't change to int");
+    }
 }
 
 void MainWindow::on_doRecord_toggled(bool checked)
@@ -383,6 +451,13 @@ void MainWindow::on_doRecord_toggled(bool checked)
             ui->doCapture->setChecked(false);
         }
     }
+    else
+    {
+        if(!ui->doCapture->isChecked())
+        {
+            ui->analyzeMs->setText("stop");
+        }
+    }
 }
 
 void MainWindow::on_doCapture_toggled(bool checked)
@@ -392,6 +467,13 @@ void MainWindow::on_doCapture_toggled(bool checked)
         if(ui->doRecord->isChecked())
         {
             ui->doRecord->setChecked(false);
+        }
+    }
+    else
+    {
+        if(!ui->doRecord->isChecked())
+        {
+            ui->analyzeMs->setText("stop");
         }
     }
 }
